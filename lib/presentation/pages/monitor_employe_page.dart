@@ -1,8 +1,10 @@
 import 'package:course_task_app/common/app_color.dart';
 import 'package:course_task_app/common/app_route.dart';
+import 'package:course_task_app/data/models/task.dart';
 import 'package:course_task_app/data/models/user.dart';
 import 'package:course_task_app/presentation/bloc/progress_task/progress_task_bloc.dart';
 import 'package:course_task_app/presentation/bloc/state_employee/state_employee_cubit.dart';
+import 'package:course_task_app/presentation/widgets/failed_ui.dart';
 import 'package:d_button/d_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,6 +54,8 @@ class _MonitorEmployePageState extends State<MonitorEmployePage> {
                 buildAddButtonTask(),
                 const Gap(40),
                 buildTaskMenu(),
+                const Gap(40),
+                buildProgressTask(),
               ],
             ),
           ),
@@ -94,6 +98,54 @@ class _MonitorEmployePageState extends State<MonitorEmployePage> {
                     "assets/rejected_bg.png", "Rejected", state['Rejected']),
               ],
             );
+          },
+        )
+      ],
+    );
+  }
+
+  Widget buildProgressTask() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Progress Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 20,
+            color: AppColor.textTitle,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const Gap(20),
+        BlocBuilder<ProgressTaskBloc, ProgressTaskState>(
+          builder: (context, state) {
+            if (state is ProgressTaskLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is ProgressTaskFailed) {
+              return FailedUi(message: state.message);
+            }
+            if (state is ProgressTaskLoaded) {
+              List<Task> tasks = state.tasks;
+              if (tasks.isEmpty) {
+                return const FailedUi(
+                  message: "there is no progress",
+                  icon: Icons.list,
+                );
+              }
+
+              return ListView.builder(
+                itemCount: tasks.length,
+                padding: const EdgeInsets.all(0),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  Task task = tasks[index];
+                  return Text(task.title ?? '');
+                },
+              );
+            }
+            return const SizedBox.shrink();
           },
         )
       ],
